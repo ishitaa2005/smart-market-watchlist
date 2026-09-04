@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     environment: str = "development"  # development | staging | production
     debug: bool = True
 
-    # Database (not wired up yet — placeholder for the next step)
-    database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/watchlist"
+    # Database — always set DATABASE_URL in .env; this fallback is only here so
+    # Settings() doesn't crash if .env is missing, and intentionally uses no real password.
+    database_url: str = "postgresql+psycopg://postgres:YOUR_PASSWORD@localhost:5432/smart_market_watchlist"
 
     # CORS — frontend origin(s), comma-separated in .env
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
