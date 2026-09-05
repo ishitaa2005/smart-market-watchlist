@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  --ink: #f4f7f5;
+  --muted: #929d99;
+  --canvas: #0d1211;
+  --surface: #151b19;
+  --surface-raised: #1b2320;
+  --border: #27312e;
+  --border-strong: #34413d;
+  --signal: #50c8a1;
+  --signal-dark: #6ee0ba;
+  --signal-soft: #17372d;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Manrope', sans-serif;
+  color: var(--ink);
+  background: var(--canvas);
+  font-family: var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 78% 8%, rgba(80, 200, 161, 0.08), transparent 27%),
+    linear-gradient(rgba(244, 247, 245, 0.018) 1px, transparent 1px),
+    var(--canvas);
+  background-size: auto, 100% 32px, auto;
+}
+button, input { font: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

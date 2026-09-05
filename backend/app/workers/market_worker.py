@@ -144,7 +144,10 @@ class MarketMonitoringWorker:
     # Single symbol
     # ------------------------------------------------------------------ #
     async def process_symbol(
-        self, symbol: str, db: Optional[Session] = None
+        self,
+        symbol: str,
+        db: Optional[Session] = None,
+        benchmark_return: Optional[float] = None,
     ) -> SymbolProcessingResult:
         """
         Run one symbol through the full pipeline and persist the result.
@@ -164,7 +167,7 @@ class MarketMonitoringWorker:
         owns_session = db is None
         session = db if db is not None else self._session_factory()
         try:
-            result = await self._process_within_session(session, symbol)
+            result = await self._process_within_session(session, symbol, benchmark_return)
             if owns_session:
                 session.commit()
             return result
@@ -178,7 +181,10 @@ class MarketMonitoringWorker:
                 session.close()
 
     async def _process_within_session(
-        self, session: Session, symbol: str
+        self,
+        session: Session,
+        symbol: str,
+        benchmark_return: Optional[float] = None,
     ) -> SymbolProcessingResult:
         instrument = session.get(Instrument, symbol)
         if instrument is None:
@@ -207,6 +213,7 @@ class MarketMonitoringWorker:
             week52_high=instrument.week52_high,
             week52_low=instrument.week52_low,
             history_points=history_points,
+            benchmark_return=benchmark_return,
         )
 
         # 3. Score it. Pure function, no I/O -- exactly one call, no

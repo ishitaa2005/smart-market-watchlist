@@ -262,6 +262,16 @@ def test_worker_delegates_to_signal_engine_exactly_once():
     assert result.attention_analysis.attention_score == 65.0
 
 
+def test_worker_passes_benchmark_return_to_signal_engine():
+    provider = FakeMarketDataProvider({SYMBOL_B: _tick(SYMBOL_B, "95.00", 1_000_000)})
+    worker = MarketMonitoringWorker(market_data_provider=provider)
+
+    result = asyncio.run(worker.process_symbol(SYMBOL_B, benchmark_return=0.04))
+
+    assert result.success is True
+    assert result.attention_analysis.relative_score == 100.0
+
+
 # --------------------------------------------------------------------------- #
 # Multiple symbols processed independently
 # --------------------------------------------------------------------------- #

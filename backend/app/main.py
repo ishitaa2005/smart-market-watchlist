@@ -4,15 +4,15 @@ FastAPI application entrypoint.
 Run with:
     uvicorn app.main:app --reload
 
-This step only wires up the app, CORS, and the /health route.
-No database connection or business logic yet — that comes next.
+Wires application settings, CORS, health, watchlist, stock details,
+meaningful changes, and development-only demo routes.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routes import changes, health, stocks, watchlist
+from app.routes import changes, demo, health, stocks, watchlist
 
 settings = get_settings()
 
@@ -33,6 +33,7 @@ app.include_router(health.router)
 app.include_router(watchlist.router)
 app.include_router(changes.router)
 app.include_router(stocks.router)
+app.include_router(demo.router)
 
 
 @app.get("/")

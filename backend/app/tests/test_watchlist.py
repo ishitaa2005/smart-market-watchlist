@@ -104,6 +104,12 @@ def test_get_watchlist_returns_added_items():
 def test_get_watchlist_returns_empty_list_when_no_items():
     db = SessionLocal()
     try:
+        existing_items = [
+            (item.user_id, item.symbol, item.added_at)
+            for item in db.query(WatchlistItem)
+            .filter(WatchlistItem.user_id == DEMO_USER_ID)
+            .all()
+        ]
         db.query(WatchlistItem).filter(WatchlistItem.user_id == DEMO_USER_ID).delete(
             synchronize_session=False
         )
@@ -111,7 +117,16 @@ def test_get_watchlist_returns_empty_list_when_no_items():
     finally:
         db.close()
 
-    response = client.get("/watchlist")
+    try:
+        response = client.get("/watchlist")
+    finally:
+        db = SessionLocal()
+        try:
+            for user_id, symbol, added_at in existing_items:
+                db.add(WatchlistItem(user_id=user_id, symbol=symbol, added_at=added_at))
+            db.commit()
+        finally:
+            db.close()
 
     assert response.status_code == 200
     assert response.json() == []

@@ -162,7 +162,7 @@ class WatermarkService:
             )
             changes.extend(SymbolChange.from_event(event) for event in events)
 
-        changes.sort(key=lambda change: change.event_id, reverse=True)
+        changes.sort(key=lambda change: (change.occurred_at, change.event_id), reverse=True)
         return changes
 
     # ------------------------------------------------------------------ #

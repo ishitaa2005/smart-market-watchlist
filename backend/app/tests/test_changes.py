@@ -14,9 +14,11 @@ test_event_manager.py avoids depending on SignalEngine/EventManager
 internals by not going through them at all).
 """
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi.testclient import TestClient
 
-from app.database.models import Instrument, SignificanceEvent, UserWatermark, WatchlistItem
+from app.database.models import Instrument, SignificanceEvent, User, UserWatermark, WatchlistItem
 from app.database.session import SessionLocal
 from app.main import app
 from app.routes.watchlist import DEMO_USER_ID
@@ -63,6 +65,16 @@ def _create_instrument(symbol: str):
         db.close()
 
 
+def _create_demo_user():
+    db = SessionLocal()
+    try:
+        if db.get(User, DEMO_USER_ID) is None:
+            db.add(User(id=DEMO_USER_ID))
+            db.commit()
+    finally:
+        db.close()
+
+
 def _add_to_watchlist(symbol: str):
     db = SessionLocal()
     try:
@@ -82,6 +94,7 @@ def _create_event(
     confidence="high",
     data_status="fresh",
     status=ACTIVE_STATUS,
+    occurred_at=None,
 ) -> int:
     """Insert a SignificanceEvent row directly (bypassing EventManager --
     this suite tests the watermark/changes layer, not event creation) and
@@ -99,6 +112,7 @@ def _create_event(
             data_confidence=confidence,
             data_status=data_status,
             status=status,
+            occurred_at=occurred_at,
         )
         db.add(event)
         db.commit()
@@ -118,6 +132,7 @@ def _get_watermark(symbol: str):
 
 def setup_function():
     _cleanup(ALL_TEST_SYMBOLS)
+    _create_demo_user()
     for symbol in (SYMBOL_A, SYMBOL_B, UNWATCHED_SYMBOL):
         _create_instrument(symbol)
     _add_to_watchlist(SYMBOL_A)
@@ -238,6 +253,17 @@ def test_multiple_watchlist_symbols_have_independent_watermarks():
     b_matches = [c for c in body if c["symbol"] == SYMBOL_B]
     assert len(b_matches) == 1
     assert b_matches[0]["event_id"] == b_id
+
+
+def test_changes_are_ordered_by_occurrence_time_across_symbols():
+    now = datetime.now(timezone.utc)
+    older_id = _create_event(SYMBOL_A, occurred_at=now - timedelta(hours=1))
+    newer_id = _create_event(SYMBOL_B, occurred_at=now)
+
+    response = client.get("/watchlist/changes")
+
+    ids = [change["event_id"] for change in response.json() if change["symbol"] in (SYMBOL_A, SYMBOL_B)]
+    assert ids == [newer_id, older_id]
 
 
 def test_events_for_unwatched_symbols_never_leak_into_changes():
